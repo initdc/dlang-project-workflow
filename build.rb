@@ -2,16 +2,16 @@ require "./version"
 require "./get-version"
 require "./zig-linkers"
 
-PROGRAM = "v-demo"
+PROGRAM = "d-demo"
 # VERSION = "v0.0.1"
-BUILD_CMD = "v ."
-OUTPUT_ARG = "-o"
+BUILD_CMD = "ldc2 main.d source/*.d"
+OUTPUT_ARG = "-of"
 RELEASE_BUILD = false
-RELEASE_ARG = RELEASE_BUILD == true ? "-prod" : ""
+RELEASE_ARG = RELEASE_BUILD == true ? "--O2 --release" : ""
 RELEASE = RELEASE_BUILD == true ? "release" : "debug"
 # used in this way:
 # BUILD_CMD RELEASE_ARG TARGET_ARG OUTPUT_ARG OUTPUT_PATH
-TEST_CMD = "v test ."
+TEST_CMD = "dub test"
 
 ZIG_CC = "zig cc -target"
 
@@ -197,8 +197,9 @@ for target in targets
     program_bin = !windows ? PROGRAM : "#{PROGRAM}.exe"
     target_bin = !windows ? target : "#{target}.exe"
 
-    gen_zig_linkers target, ZIG_CC
-    target_arg = "-os #{os} -cc=#{ZIG_LINKERS_DIR}/#{target}"
+    # gen_zig_linkers target, ZIG_CC
+    # target_arg = "--mtriple=#{target} --gcc=#{ZIG_LINKERS_DIR}/#{target} --linker=#{ZIG_LINKERS_DIR}/#{target}"
+    target_arg = "--mtriple=#{target}"
 
     dir = "#{TARGET_DIR}/#{target}/#{RELEASE}"
     `mkdir -p #{dir}`

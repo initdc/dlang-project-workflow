@@ -1,16 +1,24 @@
-# Binaries for programs and plugins
-main
-vlang-project-workflow
-v-demo
+.dub
+docs.json
+__dummy.html
+docs/
+/d-demo
+d-demo.so
+d-demo.dylib
+d-demo.dll
+d-demo.a
+d-demo.lib
+d-demo-test-*
 *.exe
-*.exe~
-*.so
-*.dylib
-*.dll
-vls.log
+*.o
+*.obj
+*.lst
+main
+integ_test
 
 target
 upload
 
 zig-linkers/
 zig-targets.txt
+zig-cc-help.txt

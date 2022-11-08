@@ -1,0 +1,21 @@
+name "d-demo"
+description "A minimal D application."
+authors "initdc"
+copyright "Copyright © 2022, initdc"
+license "MPL-2.0"
+
+configuration "application" {
+    targetType "executable"
+    mainSourceFile "main.d"
+}
+
+configuration "library" {
+    targetType "library"
+    excludedSourceFiles "main.d"
+}
+
+configuration "unittest" {
+    targetType "executable"
+    excludedSourceFiles "main.d"
+    mainSourceFile "test/integ_test.d"
+}
