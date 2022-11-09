@@ -21,4 +21,4 @@ upload
 
 zig-linkers/
 zig-targets.txt
-zig-cc-help.txt
+*-help.txt
