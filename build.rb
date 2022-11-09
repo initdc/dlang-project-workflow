@@ -4,10 +4,10 @@ require "./zig-linkers"
 
 PROGRAM = "d-demo"
 # VERSION = "v0.0.1"
-BUILD_CMD = "ldc2 main.d source/*.d"
-OUTPUT_ARG = "-of"
+BUILD_CMD = "dmd main.d source/*.d"
+OUTPUT_ARG = "-of="
 RELEASE_BUILD = false
-RELEASE_ARG = RELEASE_BUILD == true ? "--O2 --release" : ""
+RELEASE_ARG = RELEASE_BUILD == true ? "-O -release" : ""
 RELEASE = RELEASE_BUILD == true ? "release" : "debug"
 # used in this way:
 # BUILD_CMD RELEASE_ARG TARGET_ARG OUTPUT_ARG OUTPUT_PATH
@@ -198,13 +198,14 @@ for target in targets
     target_bin = !windows ? target : "#{target}.exe"
 
     # gen_zig_linkers target, ZIG_CC
-    # target_arg = "--mtriple=#{target} --gcc=#{ZIG_LINKERS_DIR}/#{target} --linker=#{ZIG_LINKERS_DIR}/#{target}"
-    target_arg = "--mtriple=#{target}"
+    # target_arg = "--mtriple=#{target}  -Xcc=-L/home/codespace/bin/ldc2-1.30.0-linux-aarch64/lib --gcc=#{ZIG_LINKERS_DIR}/#{target} --linker=#{ZIG_LINKERS_DIR}/#{target}"
+    # target_arg = "--mtriple=#{target}"
+    target_arg = "-target=#{target}"
 
     dir = "#{TARGET_DIR}/#{target}/#{RELEASE}"
     `mkdir -p #{dir}`
 
-    cmd = "#{BUILD_CMD} #{RELEASE_ARG} #{target_arg} #{OUTPUT_ARG} #{dir}/#{program_bin}"
+    cmd = "#{BUILD_CMD} #{RELEASE_ARG} #{target_arg} #{OUTPUT_ARG}#{dir}/#{program_bin}"
     puts cmd
     system cmd
 
@@ -257,10 +258,10 @@ GO_ZIG.each do |target_platform, targets|
     end
 end
 
-# cmd = "file #{UPLOAD_DIR}/**"
-# IO.popen(cmd) do |r|
-#         puts r.readlines
-# end
+cmd = "file #{UPLOAD_DIR}/**"
+IO.popen(cmd) do |r|
+        puts r.readlines
+end
 
 file = "#{UPLOAD_DIR}/BINARYS"
 IO.write(file, "")
