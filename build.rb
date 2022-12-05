@@ -11,7 +11,7 @@ RELEASE_ARG = RELEASE_BUILD == true ? "-O2" : ""
 RELEASE = RELEASE_BUILD == true ? "release" : "debug"
 # used in this way:
 # GDC SOURCE RELEASE_ARG OUTPUT_ARG OUTPUT_PATH
-TEST_CMD = "dub test"
+TEST_CMD = "dub test --compiler=ldc2"
 
 TARGET_DIR = "target"
 DOCKER_DIR = "docker"
@@ -96,8 +96,13 @@ GDC = [
     "gdc-x86-64-linux-gnux32"
 ]
 
-def run_install
-    cmd = "sudo apt-get install -y #{GDC.join(" ")}"
+LDC = [
+    "ldc",
+    "dub"
+]
+
+def run_install cmds
+    cmd = "sudo apt-get install -y #{cmds.join(" ")}"
     puts cmd
     IO.popen(cmd) do |r|
         puts r.readlines
@@ -110,14 +115,20 @@ test_bin = ARGV[0] == "test" || false
 less_bin = ARGV[0] == "less" || false
 
 install_gdc = ARGV.include? "--install-gdc" || false
+install_ldc = ARGV.include? "--install-ldc" || false
 clean_all = ARGV.include? "--clean-all" || false
 clean = ARGV.include? "--clean" || false
 run_test = ARGV.include? "--run-test" || false
 catch_error = ARGV.include? "--catch-error" || false
 
 if install_gdc
-    run_install
+    run_install GDC
     return
+end
+
+if install_ldc
+  run_install LDC
+  return
 end
 
 targets = get_gdc_targets || TARGETS

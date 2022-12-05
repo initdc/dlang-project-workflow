@@ -13,6 +13,7 @@ d-demo-test-*
 *.o
 *.obj
 *.lst
+*.s
 main
 integ_test
 
