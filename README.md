@@ -1,12 +1,11 @@
-# [Zig Project Workflow](https://github.com/initdc/zig-project-workflow)
+# [Dlang Project Workflow](https://github.com/initdc/dlang-project-workflow)
 
-> Project written by zig, you just need build once time.
+> Project written by dlang, you just need build once time.
 
 ## Build on Linux Host
 
 1. deps 
 
-    - zig
     - ruby
     - tree
     - sha256sum
