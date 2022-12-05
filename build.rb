@@ -1,19 +1,17 @@
 require "./version"
 require "./get-version"
-require "./zig-linkers"
+require "./get-gdc-targets"
 
 PROGRAM = "d-demo"
 # VERSION = "v0.0.1"
-BUILD_CMD = "ldc2 main.d source/*.d"
-OUTPUT_ARG = "-of"
-RELEASE_BUILD = false
-RELEASE_ARG = RELEASE_BUILD == true ? "--O2 --release" : ""
+SOURCE = "main.d source/*.d"
+OUTPUT_ARG = "-o"
+RELEASE_BUILD = true
+RELEASE_ARG = RELEASE_BUILD == true ? "-O2" : ""
 RELEASE = RELEASE_BUILD == true ? "release" : "debug"
 # used in this way:
-# BUILD_CMD RELEASE_ARG TARGET_ARG OUTPUT_ARG OUTPUT_PATH
+# GDC SOURCE RELEASE_ARG OUTPUT_ARG OUTPUT_PATH
 TEST_CMD = "dub test"
-
-ZIG_CC = "zig cc -target"
 
 TARGET_DIR = "target"
 DOCKER_DIR = "docker"
@@ -31,121 +29,98 @@ end
 
 # go tool dist list
 # linux only for docker
-GO_ZIG = {
-    "linux/386": ["i386-linux-gnu", "i386-linux-musl"],
-    "linux/amd64": ["x86_64-linux-gnu", "x86_64-linux-musl"],
-    "linux/arm": ["arm-linux-gnueabi", "arm-linux-gnueabihf", "arm-linux-musleabi", "arm-linux-musleabihf"],
-    "linux/arm64": ["aarch64-linux-gnu", "aarch64-linux-musl"],
-    "linux/mips": ["mips-linux-gnueabi", "mips-linux-gnueabihf", "mips-linux-musl"],
-    "linux/mips64": ["mips64-linux-gnuabi64", "mips64-linux-gnuabin32", "mips64-linux-musl"],
-    "linux/mips64le": ["mips64el-linux-gnuabi64", "mips64el-linux-gnuabin32", "mips64el-linux-musl"],
-    "linux/mipsle": ["mipsel-linux-gnueabi", "mipsel-linux-gnueabihf", "mipsel-linux-musl"],
-    "linux/ppc64": ["powerpc64-linux-gnu", "powerpc64-linux-musl"],
-    "linux/ppc64le": ["powerpc64le-linux-gnu", "powerpc64le-linux-musl"],
-    "linux/riscv64": ["riscv64-linux-gnu", "riscv64-linux-musl"],
-    "linux/s390x": ["s390x-linux-gnu", "s390x-linux-musl"],
+GO_D = {
+    "linux/386": "i686-linux-gnu-gdc",
+    "linux/amd64": ["x86_64-linux-gnu-gdc", "musl-gdc"],
+    "linux/arm": ["arm-linux-gnueabi-gdc", "arm-linux-gnueabihf-gdc"],
+    "linux/arm64": "aarch64-linux-gnu-gdc",
+    "linux/mips": "mips-linux-gnu-gdc",
+    "linux/mips64": "mips64-linux-gnuabi64-gdc",
+    "linux/mips64le": "mips64el-linux-gnuabi64-gdc",
+    "linux/mipsle": "mipsel-linux-gnu-gdc",
+    "linux/ppc64": "powerpc64-linux-gnu-gdc",
+    "linux/ppc64le": "powerpc64le-linux-gnu-gdc",
+    "linux/riscv64": "riscv64-linux-gnu-gdc",
+    "linux/s390x": "s390x-linux-gnu-gdc",
 }
 
 ARM = ["5", "6", "7"]
 
-# zig targets | jq -r .libc
+# ls -1 /usr/bin/*-gdc
 TARGETS = [
-    "aarch64_be-linux-gnu",
-    "aarch64_be-linux-musl",
-    "aarch64_be-windows-gnu",
-    "aarch64-linux-gnu",
-    "aarch64-linux-musl",
-    "aarch64-windows-gnu",
-    "aarch64-macos-none",
-    "armeb-linux-gnueabi",
-    "armeb-linux-gnueabihf",
-    "armeb-linux-musleabi",
-    "armeb-linux-musleabihf",
-    "armeb-windows-gnu",
-    "arm-linux-gnueabi",
-    "arm-linux-gnueabihf",
-    "arm-linux-musleabi",
-    "arm-linux-musleabihf",
-    "thumb-linux-gnueabi",
-    "thumb-linux-gnueabihf",
-    "thumb-linux-musleabi",
-    "thumb-linux-musleabihf",
-    "arm-windows-gnu",
-    "csky-linux-gnueabi",
-    "csky-linux-gnueabihf",
-    "i386-linux-gnu",
-    "i386-linux-musl",
-    "i386-windows-gnu",
-    "m68k-linux-gnu",
-    "m68k-linux-musl",
-    "mips64el-linux-gnuabi64",
-    "mips64el-linux-gnuabin32",
-    "mips64el-linux-musl",
-    "mips64-linux-gnuabi64",
-    "mips64-linux-gnuabin32",
-    "mips64-linux-musl",
-    "mipsel-linux-gnueabi",
-    "mipsel-linux-gnueabihf",
-    "mipsel-linux-musl",
-    "mips-linux-gnueabi",
-    "mips-linux-gnueabihf",
-    "mips-linux-musl",
-    "powerpc64le-linux-gnu",
-    "powerpc64le-linux-musl",
-    "powerpc64-linux-gnu",
-    "powerpc64-linux-musl",
-    "powerpc-linux-gnueabi",
-    "powerpc-linux-gnueabihf",
-    "powerpc-linux-musl",
-    "riscv64-linux-gnu",
-    "riscv64-linux-musl",
-    "s390x-linux-gnu",
-    "s390x-linux-musl",
-    "sparc-linux-gnu",
-    "sparc64-linux-gnu",
-    "wasm32-freestanding-musl",
-    "wasm32-wasi-musl",
-    "x86_64-linux-gnu",
-    "x86_64-linux-gnux32",
-    "x86_64-linux-musl",
-    "x86_64-windows-gnu",
-    "x86_64-macos-none",
+    "aarch64-linux-gnu-gdc",
+    "arm-linux-gnueabi-gdc",
+    "arm-linux-gnueabihf-gdc",
+    "i686-linux-gnu-gdc",
+    "mips64el-linux-gnuabi64-gdc",
+    "mips64-linux-gnuabi64-gdc",
+    "mipsel-linux-gnu-gdc",
+    "mips-linux-gnu-gdc",
+    "powerpc64le-linux-gnu-gdc",
+    "powerpc64-linux-gnu-gdc",
+    "powerpc-linux-gnu-gdc",
+    "riscv64-linux-gnu-gdc",
+    "s390x-linux-gnu-gdc",
+    "x86_64-linux-gnu-gdc",
+    "x86_64-linux-gnux32-gdc"
 ]
 
 TEST_TARGETS = [
-    "aarch64-linux-gnu",
-    "aarch64-linux-musl",
-    "aarch64-windows-gnu",
-    "aarch64-macos-none",
-    "arm-linux-gnueabi",
-    "arm-linux-gnueabihf",
-    "arm-linux-musleabi",
-    "arm-linux-musleabihf",
-    "x86_64-linux-gnu",
-    "x86_64-linux-gnux32",
-    "x86_64-linux-musl",
-    "x86_64-windows-gnu",
-    "x86_64-macos-none",
+    "aarch64-linux-gnu-gdc",
+    "arm-linux-gnueabi-gdc",
+    "arm-linux-gnueabihf-gdc",
+    "riscv64-linux-gnu-gdc",
+    "x86_64-linux-gnu-gdc",
 ]
 
 LESS_TARGETS = [
-    "aarch64-linux-gnu",
-    "aarch64-linux-musl",
-    "x86_64-linux-gnu",
-    "x86_64-linux-musl",
+    "aarch64-linux-gnu-gdc",
+    "x86_64-linux-gnu-gdc",
 ]
+
+GDC = [
+    "gdc-aarch64-linux-gnu",
+    "gdc-arm-linux-gnueabi",
+    "gdc-arm-linux-gnueabihf",
+    "gdc-mips-linux-gnu",
+    "gdc-mips64-linux-gnuabi64",
+    "gdc-mips64el-linux-gnuabi64",
+    "gdc-mipsel-linux-gnu",
+    "gdc-powerpc-linux-gnu",
+    "gdc-powerpc64-linux-gnu",
+    "gdc-powerpc64le-linux-gnu",
+    "gdc-riscv64-linux-gnu",
+    "gdc-s390x-linux-gnu",
+    "gdc-i686-linux-gnu",
+    "gdc",
+    "gdc-x86-64-linux-gnux32"
+]
+
+def run_install
+    cmd = "sudo apt-get install -y #{GDC.join(" ")}"
+    puts cmd
+    IO.popen(cmd) do |r|
+        puts r.readlines
+    end
+end
 
 version = get_version ARGV, 0, VERSION
 
 test_bin = ARGV[0] == "test" || false
 less_bin = ARGV[0] == "less" || false
 
+install_gdc = ARGV.include? "--install-gdc" || false
 clean_all = ARGV.include? "--clean-all" || false
 clean = ARGV.include? "--clean" || false
 run_test = ARGV.include? "--run-test" || false
 catch_error = ARGV.include? "--catch-error" || false
 
-targets = TARGETS
+if install_gdc
+    run_install
+    return
+end
+
+targets = get_gdc_targets || TARGETS
 targets = TEST_TARGETS if test_bin
 targets = LESS_TARGETS if less_bin
 
@@ -192,26 +167,25 @@ for target in targets
     tp_array = target.split("-")
     architecture = tp_array[0]
     os = tp_array[1]
-    windows = os == "windows"
+
+    windows = os == "w64"
     
     program_bin = !windows ? PROGRAM : "#{PROGRAM}.exe"
     target_bin = !windows ? target : "#{target}.exe"
 
-    # gen_zig_linkers target, ZIG_CC
-    # target_arg = "--mtriple=#{target} --gcc=#{ZIG_LINKERS_DIR}/#{target} --linker=#{ZIG_LINKERS_DIR}/#{target}"
-    target_arg = "--mtriple=#{target}"
+    gdc = target
 
     dir = "#{TARGET_DIR}/#{target}/#{RELEASE}"
     `mkdir -p #{dir}`
 
-    cmd = "#{BUILD_CMD} #{RELEASE_ARG} #{target_arg} #{OUTPUT_ARG} #{dir}/#{program_bin}"
+    cmd = "#{gdc} #{SOURCE} #{RELEASE_ARG} #{OUTPUT_ARG} #{dir}/#{program_bin}"
     puts cmd
     system cmd
 
-    existsThen "ln", "#{TARGET_DIR}/#{target}/#{RELEASE}/#{program_bin}", "#{UPLOAD_DIR}/#{target_bin}"
+    existsThen "ln", "#{dir}/#{program_bin}", "#{UPLOAD_DIR}/#{target_bin}"
 end
 
-GO_ZIG.each do |target_platform, targets|
+GO_D.each do |target_platform, targets|
     tp_array = target_platform.to_s.split("/")
     os = tp_array[0]
     architecture = tp_array[1]
@@ -225,7 +199,7 @@ GO_ZIG.each do |target_platform, targets|
             if targets.kind_of?(Array)
                 for target in targets
                     tg_array = target.split("-")
-                    abi = tg_array.last
+                    abi = tg_array[2]
 
                     existsThen "ln", "#{TARGET_DIR}/#{target}/#{RELEASE}/#{PROGRAM}", "#{docker}/#{PROGRAM}-#{abi}"
                     Dir.chdir docker do
@@ -233,6 +207,7 @@ GO_ZIG.each do |target_platform, targets|
                     end
                 end
             else
+                target = targets
                 existsThen "ln", "#{TARGET_DIR}/#{target}/#{RELEASE}/#{PROGRAM}", "#{docker}/#{PROGRAM}"
             end
         end
@@ -244,7 +219,7 @@ GO_ZIG.each do |target_platform, targets|
         if targets.kind_of?(Array)
             for target in targets
                 tg_array = target.split("-")
-                abi = tg_array.last
+                abi = tg_array[2]
 
                 existsThen "ln", "#{TARGET_DIR}/#{target}/#{RELEASE}/#{PROGRAM}", "#{docker}/#{PROGRAM}-#{abi}"
                 Dir.chdir docker do
@@ -252,6 +227,7 @@ GO_ZIG.each do |target_platform, targets|
                 end
             end
         else
+            target = targets
             existsThen "ln", "#{TARGET_DIR}/#{target}/#{RELEASE}/#{PROGRAM}", "#{docker}/#{PROGRAM}"
         end
     end
